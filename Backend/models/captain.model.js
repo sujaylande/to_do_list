@@ -67,7 +67,7 @@ const captainSchema = new mongoose.Schema({
         vehicleType: {
             type: String,
             required: true,
-            enum: [ 'car', 'motorcycle', 'auto' ],
+            enum: [ 'car', 'moto', 'auto' ],
         }
     },
 
@@ -78,7 +78,19 @@ const captainSchema = new mongoose.Schema({
         lng: {
             type: Number,
         }
-    }
+    },
+    phoneNumber: {
+        type: String,
+        required: true,
+        unique: true,
+        match: [ /^\d{10}$/, 'Phone number must be 10 digits long' ]
+    },
+
+    paymentStatus: {
+        type: String,
+        enum: [ 'PAID', 'DUE' ],
+        default: 'PAID',
+    },
 })
 
 

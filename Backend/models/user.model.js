@@ -29,6 +29,12 @@ const userSchema = new mongoose.Schema({
     socketId: {
         type: String,
     },
+    phoneNumber: {
+        type: String,
+        required: true,
+        unique: true,
+        match: [ /^\d{10}$/, 'Phone number must be 10 digits long' ]
+    },
 })
 
 userSchema.methods.generateAuthToken = function () {

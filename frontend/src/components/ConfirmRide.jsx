@@ -30,7 +30,7 @@ const ConfirmRide = (props) => {
                         <i className="ri-currency-line"></i>
                         <div>
                             <h3 className='text-lg font-medium'>₹{props.fare[ props.vehicleType ]}</h3>
-                            <p className='text-sm -mt-1 text-gray-600'>Cash Cash</p>
+                            <p className='text-sm -mt-1 text-gray-600'>Ride Fare</p>
                         </div>
                     </div>
                 </div>
@@ -38,6 +38,7 @@ const ConfirmRide = (props) => {
                     props.setVehicleFound(true)
                     props.setConfirmRidePanel(false)
                     props.createRide()
+                    props.captainNotFound()
 
                 }} className='w-full mt-5 bg-green-600 text-white font-semibold p-2 rounded-lg'>Confirm</button>
             </div>

@@ -10,6 +10,7 @@ import { SocketContext } from '../context/SocketContext'
 import { CaptainDataContext } from '../context/CapatainContext'
 import axios from 'axios'
 import LiveTracking from '../components/LiveTracking'
+import { use } from 'react'
 
 const CaptainHome = () => {
 
@@ -22,6 +23,10 @@ const CaptainHome = () => {
 
     const { socket } = useContext(SocketContext)
     const { captain } = useContext(CaptainDataContext)
+
+    const [pickupAndCaptainDistace, setPickupAndCaptainDistace] = useState(null);
+    const [myPickupLocation, setMyPickupLocation] = useState(null);
+
 
     useEffect(() => {
 
@@ -50,12 +55,77 @@ const CaptainHome = () => {
         // return () => clearInterval(locationInterval)
     }, [])
 
-    socket.on('new-ride', (data) => {
+    // socket.on('new-ride', (data) => {
 
-        setRide(data)
-        setRidePopupPanel(true)
+    //     setRide(data)
+    //     setRidePopupPanel(true)
 
-    })
+    // })
+
+    socket.on('new-ride', (data) => { // new code
+        setRide(data);
+        setMyPickupLocation(data.pickup)
+
+        setRidePopupPanel(true);
+    
+        setTimeout(() => {
+            setRidePopupPanel(false);
+        }, 15000); // 10000 milliseconds = 10 seconds
+    });
+
+    useEffect(() => {
+        findDistacePickAndCaptain();
+    }, [myPickupLocation]);
+
+
+    async function findDistacePickAndCaptain() {
+        try {
+          console.log("Finding distance and duration between pickup and captain location...");
+          // Step 1: Get Captain's location as a string from coordinates
+          const myLocationResponse = await axios.post(
+            `${import.meta.env.VITE_BASE_URL}/maps/get-location-string`,
+            {
+              ltd: captain?.location.ltd,
+              lng: captain?.location.lng
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem('token')}`
+              }
+            }
+          );
+      
+          const myLocationString = myLocationResponse.data.location;
+    
+          console.log("My Location:", myLocationString);
+      
+          if (!myLocationString) {
+            console.error("Failed to fetch captain's location as a string");
+            return;
+          }
+
+          console.log("ride pickuppp", ride?.pickup);
+      
+          // Step 2: Get distance and duration between pickup and captain location
+          if(myPickupLocation){
+            const response = await axios.get(
+                `${import.meta.env.VITE_BASE_URL}/rides/get-fare`,
+                {
+                  params: { pickup: ride?.pickup, destination: myLocationString },
+                  headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`
+                  }
+                }
+              );
+          
+              console.log("Distance and Duration:", response.data);
+              setPickupAndCaptainDistace(response.data.durationInMinutes);
+          }
+      
+        } catch (error) {
+          console.error("Error in finding distance and duration:", error);
+        }
+      }
     
 
     async function confirmRide() {
@@ -74,6 +144,8 @@ const CaptainHome = () => {
         })
 
         setRidePopupPanel(false)
+
+        //otp component will be shown if he is the first in queue otherwise not 
         setConfirmRidePopupPanel(true)
 
     }
@@ -113,6 +185,7 @@ const CaptainHome = () => {
                     src="https://upload.wikimedia.org/wikipedia/commons/c/cc/Uber_logo_2018.png"
                     alt=""
                 />
+
                 <Link
                     to="/captain-home"
                     className="h-10 w-10 bg-white flex items-center justify-center rounded-full shadow"
@@ -141,6 +214,7 @@ const CaptainHome = () => {
                     setRidePopupPanel={setRidePopupPanel}
                     setConfirmRidePopupPanel={setConfirmRidePopupPanel}
                     confirmRide={confirmRide}
+                    pickupAndCaptainDistace={pickupAndCaptainDistace}
                 />
             </div>
     

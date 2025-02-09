@@ -28,10 +28,6 @@ const Captainlogin = () => {
 
       setCaptain(data.captain)
 
-      // console.log('login');
-      // console.log(data.captain);
-      // console.log(captain);
-
       localStorage.setItem('token', data.token)
       navigate('/captain-home')
 

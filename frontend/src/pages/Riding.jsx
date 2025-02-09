@@ -34,8 +34,6 @@ const Riding = () => {
                     <div className='text-right'>
                         <h2 className='text-lg font-medium capitalize'>{ride?.captain.fullname.firstname}</h2>
                         <h4 className='text-xl font-semibold -mt-1 -mb-1'>{ride?.captain.vehicle.plate}</h4>
-                        <p className='text-sm text-gray-600'>Maruti Suzuki Alto</p>
-
                     </div>
                 </div>
 
@@ -45,7 +43,7 @@ const Riding = () => {
                         <div className='flex items-center gap-5 p-3 border-b-2'>
                             <i className="text-lg ri-map-pin-2-fill"></i>
                             <div>
-                                <h3 className='text-lg font-medium'>562/11-A</h3>
+                                <h3 className='text-lg font-medium'>Destination</h3>
                                 <p className='text-sm -mt-1 text-gray-600'>{ride?.destination}</p>
                             </div>
                         </div>
@@ -53,7 +51,7 @@ const Riding = () => {
                             <i className="ri-currency-line"></i>
                             <div>
                                 <h3 className='text-lg font-medium'>₹{ride?.fare} </h3>
-                                <p className='text-sm -mt-1 text-gray-600'>Cash Cash</p>
+                                <p className='text-sm -mt-1 text-gray-600'>Ride Fare</p>
                             </div>
                         </div>
                     </div>

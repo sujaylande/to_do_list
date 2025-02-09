@@ -35,7 +35,7 @@ const Home = () => {
     const [ vehicleType, setVehicleType ] = useState(null)
     const [ ride, setRide ] = useState(null)
     const [ duration, setDuration ] = useState(null)
-    const [rideAccepted, setRideAccepted] = useState(false);
+    const [rideWithoutCaptain, setrideWithoutCaptain] = useState(null);
 
 
     const navigate = useNavigate()
@@ -60,6 +60,27 @@ const Home = () => {
         setWaitingForDriver(false)
         navigate('/riding', { state: { ride } }) // Updated navigate to include ride data
     })
+
+    async function captainNotFound() {
+        console.log("in captainNotFound");
+        setTimeout(async () => { // Wrap the API call in a setTimeout
+            const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/rides/is-queue-empty`, {
+                params: { rideId: rideWithoutCaptain?._id },
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
+                },
+            });
+    
+            console.log("Checking queue status...");
+            console.log(response.data.isQueueEmpty);
+    
+            if (response.data.isQueueEmpty) {
+                setVehicleFound(false);
+                // alert('Sorry, No driver is available in your area!');
+            }
+        }, 20000); // Delay of 15000 milliseconds (15 seconds)
+    }
+
 
 
     const handlePickupChange = async (e) => {
@@ -145,6 +166,9 @@ const Home = () => {
     }, [ confirmRidePanel ])
 
     useGSAP(function () {
+        console.log("gsap");
+        console.log(vehicleFound);
+
         if (vehicleFound) {
             gsap.to(vehicleFoundRef.current, {
                 transform: 'translateY(0)'
@@ -184,9 +208,6 @@ const Home = () => {
         setFare(response.data.fare)
         setDuration(response.data.durationInMinutes)
 
-        // console.log("home")
-        // console.log(response.data);
-        // console.log(duration);
     }
 
     async function createRide() {
@@ -200,6 +221,7 @@ const Home = () => {
             }
         })
 
+        setrideWithoutCaptain(response.data); //new code1
 
     }
 
@@ -275,11 +297,13 @@ const Home = () => {
                     destination={destination}
                     fare={fare}
                     vehicleType={vehicleType}
+                    captainNotFound={captainNotFound}
 
                     setConfirmRidePanel={setConfirmRidePanel} setVehicleFound={setVehicleFound} />
             </div>
             <div ref={vehicleFoundRef} className='fixed w-full z-10 bottom-0 translate-y-full bg-white px-3 py-6 pt-12'>
                 <LookingForDriver
+                    rideWithoutCaptain={rideWithoutCaptain}
                     createRide={createRide}
                     pickup={pickup}
                     destination={destination}

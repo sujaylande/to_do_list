@@ -26,6 +26,26 @@ router.post('/confirm',
     rideController.confirmRide
 )
 
+router.post('/accept', // new code
+    authMiddleware.authCaptain,
+    body('rideId').isMongoId().withMessage('Invalid ride id'),
+    rideController.acceptRide
+)
+
+router.get('/is-first-in-queue', // new code
+    authMiddleware.authCaptain,
+    query('rideId').isMongoId().withMessage('Invalid ride id'),
+    rideController.isFirstInQueue
+)
+
+router.get('/is-queue-empty', // new code
+    authMiddleware.authCaptain,
+    query('rideId').isMongoId().withMessage('Invalid ride id'),
+    rideController.isQueueEmpty
+)
+
+
+
 router.get('/start-ride',
     authMiddleware.authCaptain,
     query('rideId').isMongoId().withMessage('Invalid ride id'),
