@@ -1,59 +1,64 @@
-import React from "react";
+import React, { useContext, useEffect, useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { CaptainDataContext } from '../context/CapatainContext'
+
 
 const CaptainPayment = () => {
-    
-  const navigate = useNavigate();
+    const { captain } = useContext(CaptainDataContext)
 
-  const data = {
-    name: "Vikas",
-    amount: 1,
-    number: "9999999999",
-    MUID: "MUID" + Date.now(),
-    transactionId: "T" + Date.now(),
-  };
+  const [paymentDetails, setPaymentDetails] = useState({
+    earnings: 0,
+    paymentDue: 0,
+    lastPaymentDate: "",
+  });
 
-  const handlePayment = async (e) => {
-    e.preventDefault();
+  // Fetch payment details on component mount
+  useEffect(() => {
+    const fetchPaymentDetails = async () => {
+      const token = localStorage.getItem('token')
 
-    let res = await axios
-      .post("http://localhost:8000/order", { ...data })
-      .then((res) => {
-        console.log(res);
-        if (res.data && res.data.data.instrumentResponse.redirectInfo.url) {
-          window.location.href =
-            res.data.data.instrumentResponse.redirectInfo.url;
-        }
-      })
-      .catch((error) => {
-        console.error(error);
+      console.log("captain", captain)
+      console.log("token", token)
+
+      try {
+        const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/payment/${captain?._id}`, {
+          headers: {
+              Authorization: `Bearer ${token}`
+          }
       });
+        setPaymentDetails(response.data);
+      } catch (error) {
+        console.error("Error fetching payment details:", error);
+      }
+    };
+
+    fetchPaymentDetails();
+  }, [captain?._id]);
+
+  const handlePayment = () => {
+    // Payment logic to be added later
+    console.log("Handle payment logic here");
   };
 
   return (
-    <form onSubmit={handlePayment}>
-      <div className="col-12 ">
-        <p className="fs-5">
-          <strong>Name:</strong> {data.name}
-        </p>
+    <div className="p-4 border rounded-md shadow-md w-80 bg-white">
+      <h2 className="text-xl font-bold mb-4">Captain Payment Details</h2>
+      <div className="text-sm mb-2">
+        <strong>Earnings This Month:</strong> ₹{paymentDetails.earnings}
       </div>
-      <div className="col-12 ">
-        <p className="fs-5">
-          <strong>Number:</strong> {data.number}
-        </p>
+      <div className="text-sm mb-2">
+        <strong>Payment Due:</strong> ₹{paymentDetails.paymentDue}
       </div>
-      <div className="col-12 ">
-        <p className="fs-5">
-          <strong>Amount:</strong> {data.amount}Rs
-        </p>
+      <div className={"text-sm mb-4"}>
+        <strong>Last payment Date:</strong> {paymentDetails.lastPaymentDate}
       </div>
-      <div className="col-12 center">
-        <button className="w-100 " type="submit">
-          Pay Now
-        </button>
-      </div>
-    </form>
+      <button
+        onClick={handlePayment}
+        className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600"
+      >
+        Pay Now
+      </button>
+    </div>
   );
 };
 

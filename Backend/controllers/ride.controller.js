@@ -37,10 +37,12 @@ module.exports.createRide = async (req, res) => {
       .populate("user");
 
     captainsInRadius.map((captain) => {
-      sendMessageToSocketId(captain.socketId, {
-        event: "new-ride",
-        data: rideWithUser,
-      });
+      if(!captain.isBlocked){
+        sendMessageToSocketId(captain.socketId, {
+          event: "new-ride",
+          data: rideWithUser,
+        });
+      }
     });
 
 

@@ -31,7 +31,17 @@ const Captainlogin = () => {
       localStorage.setItem('token', data.token)
       navigate('/captain-home')
 
+    } else if(response.status === 201){
+      const data = response.data
+
+      setCaptain(data.captain)
+
+      console.log("login", data.token);
+
+      localStorage.setItem('token', data.token)
+      navigate('/captain-payment')
     }
+
 
     setEmail('')
     setPassword('')

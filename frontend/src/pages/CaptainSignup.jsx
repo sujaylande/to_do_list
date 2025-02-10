@@ -17,12 +17,14 @@ const CaptainSignup = () => {
   const [ vehiclePlate, setVehiclePlate ] = useState('')
   const [ vehicleCapacity, setVehicleCapacity ] = useState('')
   const [ vehicleType, setVehicleType ] = useState('')
+  const [ phoneNumber, setPhoneNumber ] = useState('')
 
 
   const { captain, setCaptain } = React.useContext(CaptainDataContext)
 
 
   const submitHandler = async (e) => {
+    console.log("submit handler", phoneNumber);
     e.preventDefault()
     const captainData = {
       fullname: {
@@ -36,7 +38,8 @@ const CaptainSignup = () => {
         plate: vehiclePlate,
         capacity: vehicleCapacity,
         vehicleType: vehicleType
-      }
+      },
+      phoneNumber: phoneNumber
     }
 
     const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/captains/register`, captainData)
@@ -58,6 +61,7 @@ const CaptainSignup = () => {
     setVehiclePlate('')
     setVehicleCapacity('')
     setVehicleType('')
+    setPhoneNumber('')
 
   }
   return (
@@ -92,6 +96,18 @@ const CaptainSignup = () => {
               }}
             />
           </div>
+
+          <h3 className='text-lg font-medium mb-2'>What's our Captain's Phone Number</h3>
+          <input
+            required
+            value={phoneNumber}
+            onChange={(e) => {
+              setPhoneNumber(e.target.value)
+            }}
+            className='bg-[#eeeeee] mb-7 rounded-lg px-4 py-2 border w-full text-lg placeholder:text-base'
+            type="text"
+            placeholder='1234567890'
+          />
 
           <h3 className='text-lg font-medium mb-2'>What's our Captain's email</h3>
           <input

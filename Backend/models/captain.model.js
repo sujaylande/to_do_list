@@ -85,11 +85,10 @@ const captainSchema = new mongoose.Schema({
         unique: true,
         match: [ /^\d{10}$/, 'Phone number must be 10 digits long' ]
     },
-
-    paymentStatus: {
-        type: String,
-        enum: [ 'PAID', 'DUE' ],
-        default: 'PAID',
+    isBlocked: {
+        type: Boolean,
+        enum: [ true, false ],
+        default: false,
     },
 })
 
