@@ -35,6 +35,10 @@ const userSchema = new mongoose.Schema({
         unique: true,
         match: [ /^\d{10}$/, 'Phone number must be 10 digits long' ]
     },
+    profilePicture: {
+        type: String,
+        required: true,
+    },
 })
 
 userSchema.methods.generateAuthToken = function () {

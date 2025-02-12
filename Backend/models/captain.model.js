@@ -90,6 +90,22 @@ const captainSchema = new mongoose.Schema({
         enum: [ true, false ],
         default: false,
     },
+    activeHours: {
+        type: Number,
+        default: 0,
+      },
+      drivingHours: {
+        type: Number,
+        default: 0,
+      },
+      drivingKM: {
+        type: Number,
+        default: 0,
+      },
+      profilePicture: {
+        type: String,
+        required: true,
+    },
 })
 
 

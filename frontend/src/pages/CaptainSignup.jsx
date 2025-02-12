@@ -18,31 +18,59 @@ const CaptainSignup = () => {
   const [ vehicleCapacity, setVehicleCapacity ] = useState('')
   const [ vehicleType, setVehicleType ] = useState('')
   const [ phoneNumber, setPhoneNumber ] = useState('')
+  const [profilePicture, setProfilePicture] = useState(null);
+
 
 
   const { captain, setCaptain } = React.useContext(CaptainDataContext)
 
+  const handleFileChange = (e) => {
+    setProfilePicture(e.target.files[0]);
+  };
+
 
   const submitHandler = async (e) => {
-    console.log("submit handler", phoneNumber);
     e.preventDefault()
-    const captainData = {
-      fullname: {
-        firstname: firstName,
-        lastname: lastName
-      },
-      email: email,
-      password: password,
-      vehicle: {
-        color: vehicleColor,
-        plate: vehiclePlate,
-        capacity: vehicleCapacity,
-        vehicleType: vehicleType
-      },
-      phoneNumber: phoneNumber
-    }
 
-    const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/captains/register`, captainData)
+    // const captainData = {
+    //   fullname: {
+    //     firstname: firstName,
+    //     lastname: lastName
+    //   },
+    //   email: email,
+    //   password: password,
+    //   vehicle: {
+    //     color: vehicleColor,
+    //     plate: vehiclePlate,
+    //     capacity: vehicleCapacity,
+    //     vehicleType: vehicleType
+    //   },
+    //   phoneNumber: phoneNumber
+    // }
+
+    // const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/captains/register`, captainData)
+
+    const formData = new FormData();
+
+formData.append("firstname", firstName);
+formData.append("lastname", lastName);
+formData.append("email", email);
+formData.append("password", password);
+formData.append("phoneNumber", phoneNumber);
+formData.append("vehicleColor", vehicleColor);
+formData.append("vehiclePlate", vehiclePlate);
+formData.append("vehicleCapacity", vehicleCapacity);
+formData.append("vehicleType", vehicleType);
+
+if (profilePicture) {
+    formData.append("profilePicture", profilePicture);
+}
+
+    const response = await axios.post(
+      `${import.meta.env.VITE_BASE_URL}/captains/register`,
+      formData
+    );
+
 
     if (response.status === 201) {
       const data = response.data
@@ -108,6 +136,11 @@ const CaptainSignup = () => {
             type="text"
             placeholder='1234567890'
           />
+
+          <h3 className="text-lg font-medium mb-2">Upload Profile Picture</h3>
+            <input
+            className="bg-[#eeeeee] mb-7 rounded-lg px-4 py-2 border w-full text-lg placeholder:text-base"
+            type="file" accept="image/*" onChange={handleFileChange} />
 
           <h3 className='text-lg font-medium mb-2'>What's our Captain's email</h3>
           <input

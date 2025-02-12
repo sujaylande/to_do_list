@@ -2,6 +2,8 @@ const rideModel = require('../models/ride.model');
 const mapService = require('./maps.service');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
+const Payment = require('../models/payment.model');
+const captainModel = require('../models/captain.model');
 
 
 async function getFare(pickup, destination) {
@@ -78,9 +80,9 @@ function getOtp(num) {
 
 
 module.exports.createRide = async ({
-    user, pickup, destination, vehicleType
+    user, pickup, destination, vehicleType, distance, duration
 }) => {
-    if (!user || !pickup || !destination || !vehicleType) {
+    if (!user || !pickup || !destination || !vehicleType || !distance || !duration) {
         throw new Error('All fields are required');
     }
 
@@ -91,7 +93,9 @@ module.exports.createRide = async ({
         pickup,
         destination,
         otp: getOtp(6),
-        fare: fare[ vehicleType ]
+        fare: fare[ vehicleType ],
+        distance,
+        duration
     })
 
     return ride;
@@ -163,6 +167,9 @@ module.exports.endRide = async ({ rideId, captain }) => {
         captain: captain._id
     }).populate('user').populate('captain').select('+otp');
 
+    console.log("duration", ride);
+    console.log("distance", ride.distance);
+
     if (!ride) {
         throw new Error('Ride not found');
     }
@@ -176,6 +183,32 @@ module.exports.endRide = async ({ rideId, captain }) => {
     }, {
         status: 'completed'
     })
+
+    //add ride fare into captains payment model ernings
+
+    await Payment.findOneAndUpdate(
+        { captainID: captain._id },
+        {
+          $inc: {
+            earnings: ride.fare,
+          }
+        },
+        { new: true, upsert: true } // Create the document if it doesn't exist
+      );
+
+      
+
+      await captainModel.findOneAndUpdate(
+        { _id: captain._id },
+        {
+          $inc: {
+            drivingHours: ride.duration,
+            drivingKM: ride.distance
+          }
+        },
+        { new: true } // Return the updated document
+      );
+      
 
     return ride;
 }

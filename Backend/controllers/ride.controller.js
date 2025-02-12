@@ -13,14 +13,44 @@ module.exports.createRide = async (req, res) => {
 
   const { pickup, destination, vehicleType } = req.body;
 
-  try {
-    const ride = await rideService.createRide({
-      user: req?.user?._id,
-      pickup,
-      destination,
-      vehicleType,
-    });
-    res.status(201).json(ride);
+  const { fare, durationInMinutes } = await rideService.getFare(
+    pickup,
+    destination
+  );
+
+  const distanceString = durationInMinutes[vehicleType].distance; // e.g., "76.32 km"
+  const durationString = durationInMinutes[vehicleType].duration; // e.g., "1 hours and 47 minutes"
+  
+  // Convert distance to a number
+  const distance = parseFloat(distanceString.replace(' km', ''));
+  
+  // Convert duration to total minutes
+  let totalMinutes = 0;
+  const hoursMatch = durationString.match(/(\d+)\s*hours?/); // Match hours
+  const minutesMatch = durationString.match(/(\d+)\s*minutes?/); // Match minutes
+  
+  if (hoursMatch) {
+    totalMinutes += parseInt(hoursMatch[1]) * 60; // Convert hours to minutes
+  }
+  if (minutesMatch) {
+    totalMinutes += parseInt(minutesMatch[1]); // Add minutes
+  }
+  
+  console.log("create ride", distance); // 76.32 (as a number)
+  console.log("create ride", totalMinutes); // 107 (total minutes)
+  
+  try{
+  // Store the parsed values in the database
+  const ride = await rideService.createRide({
+    user: req?.user?._id,
+    pickup,
+    destination,
+    vehicleType,
+    distance, // Store as a number
+    duration: totalMinutes // Store as a number
+  });
+  
+  res.status(201).json(ride);
 
     const pickupCoordinates = await mapService.getAddressCoordinate(pickup);
 
@@ -35,6 +65,8 @@ module.exports.createRide = async (req, res) => {
     const rideWithUser = await rideModel
       .findOne({ _id: ride?._id })
       .populate("user");
+
+    console.log("rideWithUser:", rideWithUser);
 
     captainsInRadius.map((captain) => {
       if(!captain.isBlocked){
@@ -86,11 +118,6 @@ module.exports.confirmRide = async (req, res) => {
       captain: req.captain,
     });
 
-    //cheack if that ride is already confirmed by another captain
-    // if (ride.captain) {
-    //     return res.status(400).json({ message: 'Ride already confirmed by another captain' });
-    // }
-
     sendMessageToSocketId(ride.user.socketId, {
       event: "ride-confirmed",
       data: ride,
@@ -137,7 +164,7 @@ module.exports.endRide = async (req, res) => {
 
   const { rideId } = req.body;
 
-  console.log("rideId:", rideId);
+  // console.log("rideId:", rideId);
 
   try {
     const ride = await rideService.endRide({ rideId, captain: req.captain });
@@ -175,7 +202,6 @@ module.exports.acceptRide = async (req, res) => {
     console.log(captainId);
 
     if (!ride.acceptedCaptains.includes(captainId)) {
-        console.log('accepted');
       ride.acceptedCaptains.push(captainId);
       await ride.save();
     }
@@ -202,10 +228,6 @@ module.exports.isFirstInQueue = async (req, res) => {
     if (!ride) {
       throw new Error("Ride not found");
     }
-
-    console.log("isFirstInQueue");
-    console.log(ride.acceptedCaptains[0]);
-    console.log(captainId);
 
     if (ride.acceptedCaptains[0].toString() === captainId.toString()) {
         return res.status(200).json({ isFirstInQueue: true });

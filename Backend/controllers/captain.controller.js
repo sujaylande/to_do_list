@@ -3,17 +3,20 @@ const captainService = require('../services/captain.service');
 const blackListTokenModel = require('../models/blackListToken.model');
 const { validationResult } = require('express-validator');
 const paymentModel = require('../models/payment.model');
+const getDataUri = require('../config/dataURI.config');
+const s3 = require('../config/aws.config');
 
 
 module.exports.registerCaptain = async (req, res, next) => {
 
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-    }
+    // const errors = validationResult(req);
+    // if (!errors.isEmpty()) {
+    //     return res.status(400).json({ errors: errors.array() });
+    // }
 
-    const { fullname, email, password, vehicle, phoneNumber } = req.body;
+    const { firstname, lastname, email, password, phoneNumber, vehicleColor, vehiclePlate, vehicleCapacity, vehicleType } = req.body;
 
+    console.log("phone", phoneNumber);
 
     const isCaptainAlreadyExist = await captainModel.findOne({ email });
     const CaptainAlreadyExist = await captainModel.findOne({ phoneNumber });
@@ -26,16 +29,33 @@ module.exports.registerCaptain = async (req, res, next) => {
 
     const hashedPassword = await captainModel.hashPassword(password);
 
+    const file = req.file;
+
+    let s3Response;
+        if (file) {
+            const fileUri = getDataUri(req.file);
+
+            const s3Params = {
+                Bucket: process.env.AWS_BUCKET_NAME,
+                Key: `image/${req.file.originalname}`,
+                Body: req.file.buffer,
+                ContentType: req.file.mimetype,
+              };
+        
+              s3Response = await s3.upload(s3Params).promise();
+        }
+
     const captain = await captainService.createCaptain({
-        firstname: fullname.firstname,
-        lastname: fullname.lastname,
+        firstname: firstname,
+        lastname: lastname,
         email,
         password: hashedPassword,
-        color: vehicle.color,
-        plate: vehicle.plate,
-        capacity: vehicle.capacity,
-        vehicleType: vehicle.vehicleType,
-        phoneNumber
+        color: vehicleColor,
+        plate: vehiclePlate,
+        capacity: vehicleCapacity,
+        vehicleType: vehicleType,
+        phoneNumber,
+        profilePicture: s3Response.Location
     });
 
     // Payment cycle setup upon registration

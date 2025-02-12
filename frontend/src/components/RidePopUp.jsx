@@ -8,12 +8,9 @@ const RidePopUp = (props) => {
   const [isAccepting, setIsAccepting] = useState(false);
   const [isLoading, setIsLoading] = useState(true); // Add loading state
 
-  console.log("RidePopUp Props:", props?.pickupAndCaptainDistace);
+  console.log("RidePopUp:", props.ride?.user);
 
   const vehicle = captain?.vehicle?.vehicleType;
-  console.log("Vehicle:", vehicle);
-
-
 
   const acceptRide = async (ride) => {
     try {
@@ -96,7 +93,7 @@ const RidePopUp = (props) => {
         <div className="flex items-center gap-3">
           <img
             className="h-12 rounded-full object-cover w-12"
-            src="https://i.pinimg.com/236x/af/26/28/af26280b0ca305be47df0b799ed1b12b.jpg"
+            src={props.ride?.user.profilePicture}
             alt=""
           />
           <h2 className="text-lg font-medium"> 
