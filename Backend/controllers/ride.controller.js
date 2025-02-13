@@ -4,6 +4,60 @@ const mapService = require("../services/maps.service");
 const { sendMessageToSocketId } = require("../socket");
 const rideModel = require("../models/ride.model");
 const captainModel = require("../models/captain.model");
+const { client } = require('../db/redis');
+const mongoose = require('mongoose');
+
+
+async function getAvailableCaptains(lat, lng, radius, userVehicleChoice) {
+  try {
+    // Step 1: Get nearby captains from Redis
+
+    // The closest captains will always appear first unless modified.
+
+    const captainsInRadius = await client.geoSearch(
+      "captains",
+      { longitude: lng, latitude: lat },
+      { radius: radius, unit: "km" },
+      { WITHDIST: true }
+    );
+
+    console.log("captainsInRadius:", captainsInRadius);
+
+    if (captainsInRadius.length === 0) return []; // No captains found
+
+    // Step 2: Extract captain IDs
+    const captainIds = captainsInRadius.map(c => new mongoose.Types.ObjectId(c));
+
+    console.log("Extracted Captain IDs:", captainIds[0]);
+    console.log("userVehicleChoice:", userVehicleChoice);
+
+    // Step 3: Query MongoDB for available captains
+
+    // since you're filtering a subset of Redis results, the relative order may remain unchanged.
+    const availableCaptains = await captainModel.find(
+      { 
+        _id: { $in: captainIds },  // Match Redis IDs
+        isDriving: false, 
+        isBlocked: false, 
+        "vehicle.vehicleType": userVehicleChoice  // Access nested vehicleType
+      },
+      { socketId: 1, _id: 0 } // Select only socketId, exclude _id
+    );
+    
+    console.log("Available Captains:", availableCaptains);
+
+    // Step 4: Shuffle the array
+    // availableCaptains.sort(() => Math.random() - 0.5);
+
+
+    return availableCaptains;
+  } catch (err) {
+    console.error("Error getting available captains:", err);
+    return [];
+  }
+}
+
+
 
 module.exports.createRide = async (req, res) => {
   const errors = validationResult(req);
@@ -36,9 +90,6 @@ module.exports.createRide = async (req, res) => {
     totalMinutes += parseInt(minutesMatch[1]); // Add minutes
   }
   
-  console.log("create ride", distance); // 76.32 (as a number)
-  console.log("create ride", totalMinutes); // 107 (total minutes)
-  
   try{
   // Store the parsed values in the database
   const ride = await rideService.createRide({
@@ -54,11 +105,11 @@ module.exports.createRide = async (req, res) => {
 
     const pickupCoordinates = await mapService.getAddressCoordinate(pickup);
 
-    const captainsInRadius = await mapService.getCaptainsInTheRadius(
-      pickupCoordinates.ltd,
-      pickupCoordinates.lng,
-      2
-    );
+    console.log("vehicle in controoler", vehicleType);
+
+    const captainsInRadius = await getAvailableCaptains(pickupCoordinates.ltd, pickupCoordinates.lng, 5, vehicleType);
+
+    console.log("captainsInRadius", captainsInRadius);
 
     ride.otp = "";
 
@@ -66,17 +117,15 @@ module.exports.createRide = async (req, res) => {
       .findOne({ _id: ride?._id })
       .populate("user");
 
-    console.log("rideWithUser:", rideWithUser);
+    captainsInRadius.map((obj) => {
 
-    captainsInRadius.map((captain) => {
-      if(!captain.isBlocked){
-        sendMessageToSocketId(captain.socketId, {
+      console.log("captain socket id", obj.socketId);
+
+      sendMessageToSocketId(obj.socketId, {
           event: "new-ride",
           data: rideWithUser,
-        });
-      }
-    });
-
+      });
+  });
 
   } catch (err) {
     console.log(err);
@@ -169,7 +218,6 @@ module.exports.endRide = async (req, res) => {
   try {
     const ride = await rideService.endRide({ rideId, captain: req.captain });
 
-    console.log("ride:", ride);
 
     sendMessageToSocketId(ride.user.socketId, {
       event: "ride-ended",

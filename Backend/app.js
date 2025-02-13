@@ -13,9 +13,10 @@ const cron = require('node-cron');
 const captainModel = require('./models/captain.model');
 const paymentRoutes = require('./routes/payment.routes');
 const paymentModel = require('./models/payment.model');
-
+const {connectRedis} = require('./db/redis');
 
 connectToDb();
+connectRedis();
 
 app.use(cors());
 app.use(express.json());

@@ -34,6 +34,7 @@ const CaptainHome = () => {
             userId: captain?._id,
             userType: 'captain'
         })
+        
         const updateLocation = () => {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(position => {
@@ -43,7 +44,7 @@ const CaptainHome = () => {
                         location: {
                             ltd: position.coords.latitude,
                             lng: position.coords.longitude
-                        }
+                        },
                     })
                 })
             }
@@ -52,7 +53,6 @@ const CaptainHome = () => {
         const locationInterval = setInterval(updateLocation, 10000*6) // 1 min
         updateLocation()
 
-        // return () => clearInterval(locationInterval)
     }, [])
 
     // socket.on('new-ride', (data) => {

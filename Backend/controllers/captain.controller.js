@@ -128,7 +128,6 @@ module.exports.logoutCaptain = async (req, res, next) => {
     req.captain.status = 'inactive';
     await req.captain.save();
     
-
     res.clearCookie('token');
 
     res.status(200).json({ message: 'Logout successfully' });

@@ -154,6 +154,15 @@ module.exports.startRide = async ({ rideId, otp, captain }) => {
         status: 'ongoing'
     })
 
+    //update captain as driving
+    await captainModel.findOneAndUpdate(
+        { _id: captain._id },
+        {
+          isDriving: true
+        },
+        { new: true } // Return the updated document
+      );
+
     return ride;
 }
 
@@ -167,8 +176,6 @@ module.exports.endRide = async ({ rideId, captain }) => {
         captain: captain._id
     }).populate('user').populate('captain').select('+otp');
 
-    console.log("duration", ride);
-    console.log("distance", ride.distance);
 
     if (!ride) {
         throw new Error('Ride not found');
@@ -196,15 +203,16 @@ module.exports.endRide = async ({ rideId, captain }) => {
         { new: true, upsert: true } // Create the document if it doesn't exist
       );
 
-      
-
       await captainModel.findOneAndUpdate(
         { _id: captain._id },
         {
           $inc: {
             drivingHours: ride.duration,
             drivingKM: ride.distance
-          }
+          },
+          $set: {  // Add $set to update isDriving
+            isDriving: false
+        }
         },
         { new: true } // Return the updated document
       );
