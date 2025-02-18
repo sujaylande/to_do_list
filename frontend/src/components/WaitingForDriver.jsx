@@ -1,5 +1,30 @@
 import React from 'react'
+import axios from 'axios'
+
 const WaitingForDriver = (props) => {
+
+
+  const cancelRide = async () => {
+
+    const response = await axios.get(
+      `${import.meta.env.VITE_BASE_URL}/rides/cancel-ride-byuser`,
+      {
+        params: {
+          rideId: props.ride._id,
+        },
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      }
+    );
+
+    if (response.status === 200) {
+      console.log("Ride Cancelled by user")
+      props.setWaitingForDriver(false)
+      props.setVehicleFound(false)
+    }
+  };
+
   return (
     <div>
       {/* <h5 className='p-1 text-center w-[93%] absolute top-0' onClick={() => {
@@ -39,6 +64,20 @@ const WaitingForDriver = (props) => {
               <p className='text-sm -mt-1 text-gray-600'>Ride Fare</p>
             </div>
           </div>
+
+          <div className='flex items-center gap-5 p-3'>
+            <div>
+            <button
+              onClick={() => {
+                cancelRide();
+              }}
+              className="w-full mt-2 bg-red-600 text-lg text-white font-semibold p-3 rounded-lg active:bg-red-500"
+            >
+              Cancel Ride
+            </button>
+            </div>
+          </div>
+          
         </div>
       </div>
     </div>

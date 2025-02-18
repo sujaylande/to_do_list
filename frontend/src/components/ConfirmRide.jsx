@@ -48,6 +48,7 @@ const ConfirmRide = (props) => {
                 >
                     Confirm
                 </button>
+
             </div>
         </div>
     );

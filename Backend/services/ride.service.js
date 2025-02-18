@@ -115,6 +115,8 @@ module.exports.confirmRide = async ({
         captain: captain._id
     })
 
+    console.log("Ride accepted in backend confirm ride", rideId);
+
     const ride = await rideModel.findOne({
         _id: rideId
     }).populate('user').populate('captain').select('+otp');

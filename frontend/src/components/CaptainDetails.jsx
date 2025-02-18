@@ -42,8 +42,7 @@ const CaptainDetails = () => {
             <div className='flex p-3 mt-8 bg-gray-100 rounded-xl justify-center gap-5 items-start'>
                 <div className='text-center'>
                     <i className="text-3xl mb-2 font-thin ri-booklet-line"></i>
-                    <h5 className='text-lg font-medium'>{earnings*(0.01)}</h5>
-                    <p className='text-sm text-gray-600'>Fees Due</p>
+                    <h5 className='text-lg font-medium'>{(earnings * 0.01).toFixed(2)}</h5>                    <p className='text-sm text-gray-600'>Fees Due</p>
                 </div>
                 <div className='text-center'>
                     <i className="text-3xl mb-2 font-thin ri-speed-up-line"></i>
@@ -52,7 +51,7 @@ const CaptainDetails = () => {
                 </div>
                 <div className='text-center'>
                     <i className="text-3xl mb-2 font-thin ri-timer-2-line"></i>
-                    <h5 className='text-lg font-medium'>{captain?.drivingKM}</h5>
+                    <h5 className='text-lg font-medium'>{(captain?.drivingKM).toFixed(2)}</h5>
                     <p className='text-sm text-gray-600'>KM Driving</p>
                 </div>
 

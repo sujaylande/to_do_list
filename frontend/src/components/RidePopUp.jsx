@@ -1,6 +1,7 @@
 import { useState, useContext, useEffect } from "react";
 import axios from "axios";
 import { CaptainDataContext } from "../context/CapatainContext";
+// import { CaptainRideContext } from "../context/CaptainRide";
 
 const RidePopUp = (props) => {
   const { captain } = useContext(CaptainDataContext);
@@ -8,7 +9,11 @@ const RidePopUp = (props) => {
   const [isAccepting, setIsAccepting] = useState(false);
   const [isLoading, setIsLoading] = useState(true); // Add loading state
 
-  console.log("RidePopUp:", props.ride?.user);
+  // const { ridecontext } = useContext(CaptainRideContext)
+  
+
+  console.log("RidePopUp rideee", props.ride);
+  console.log("RidePopUp captain id:", captain?._id);
 
   const vehicle = captain?.vehicle?.vehicleType;
 
@@ -93,13 +98,13 @@ const RidePopUp = (props) => {
         <div className="flex items-center gap-3">
           <img
             className="h-12 rounded-full object-cover w-12"
-            src={props.ride?.user.profilePicture}
+            src={props.ride?.user?.profilePicture}
             alt=""
           />
           <h2 className="text-lg font-medium"> 
-            {props.ride?.user.fullname.firstname +
+            {props.ride?.user?.fullname?.firstname +
               " " +
-              props.ride?.user.fullname.lastname}
+              props.ride?.user?.fullname?.lastname}
           </h2>
         </div>
       </div>
@@ -111,11 +116,11 @@ const RidePopUp = (props) => {
           <div className="ride-details">
   <div className="flex items-center"> {/* Use flexbox */}
     <h5 className="text-lg font-semibold">Pickup:</h5>
-    <span className="ml-2">{props?.ride?.pickup}</span> {/* Margin for spacing */}
+    <span className="ml-2">{props.ride?.pickup}</span> {/* Margin for spacing */}
   </div>
     <div className="flex items-center"> {/* Use flexbox */}
     <h5 className="text-lg font-semibold">Destination:</h5>
-    <span className="ml-2">{props?.ride?.destination}</span> {/* Margin for spacing */}
+    <span className="ml-2">{props.ride?.destination}</span> {/* Margin for spacing */}
   </div>
 </div>
           </h2>
@@ -152,7 +157,7 @@ const RidePopUp = (props) => {
       <div className="flex gap-2 justify-between flex-col items-center">
         <div className="w-full mt-5">
           <button
-            onClick={() => handleAcceptRide(props.ride)}
+            onClick={() => handleAcceptRide(props?.ride)}
             className={`w-full text-white font-semibold p-2 px-10 rounded-lg 
                        ${
                          isAccepting

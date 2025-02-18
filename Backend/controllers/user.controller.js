@@ -73,7 +73,7 @@ module.exports.registerUser = async (req, res) => {
       lastname: lastname,
       email,
       password: hashedPassword,
-      profilePicture: s3Response.Location,
+      profilePicture: s3Response?.Location,
       phoneNumber
     });
   

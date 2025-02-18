@@ -5,6 +5,7 @@ const { validationResult } = require('express-validator');
 const paymentModel = require('../models/payment.model');
 const getDataUri = require('../config/dataURI.config');
 const s3 = require('../config/aws.config');
+const {client} = require('../db/redis');
 
 
 module.exports.registerCaptain = async (req, res, next) => {
@@ -123,6 +124,11 @@ module.exports.logoutCaptain = async (req, res, next) => {
     const token = req.cookies.token || req.headers.authorization?.split(' ')[ 1 ];
 
     await blackListTokenModel.create({ token });
+
+    await client.del(`captain:${req.captain?._id}`);
+    await client.zRem("captains", req.captain?._id.toString()); // Remove location from Redis
+    console.log("Remove captain details from Redis")
+    
 
     //update captian status as inactive
     req.captain.status = 'inactive';

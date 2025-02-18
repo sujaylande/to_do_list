@@ -13,6 +13,8 @@ import { useContext } from 'react';
 import { UserDataContext } from '../context/UserContext';
 import { useNavigate } from 'react-router-dom';
 import LiveTracking from '../components/LiveTracking';
+import NoDriverAvailable from '../components/NoDriverAvailable';
+import CancelRidePanel from '../components/CancelRidePanel';
 
 const Home = () => {
     const [ pickup, setPickup ] = useState('')
@@ -36,6 +38,10 @@ const Home = () => {
     const [ ride, setRide ] = useState(null)
     const [ duration, setDuration ] = useState(null)
     const [rideWithoutCaptain, setrideWithoutCaptain] = useState(null);
+    const [queueEmpty, setQueueEmpty] = useState(false);
+    const queueEmptyPanelRef = useRef(null);
+    const [cancelPanel, setCancelPanel] = useState(false);
+    const cancelRidePanelRef = useRef(null);
 
 
     const navigate = useNavigate()
@@ -48,11 +54,20 @@ const Home = () => {
     }, [ user ])
 
     socket.on('ride-confirmed', ride => {
+        console.log("comfirm ride mesage reseved from captian");
         setVehicleFound(false)
         setWaitingForDriver(true)
         setRide(ride)
-
     })
+
+    socket.on('ride-cancelled', ride => {
+        console.log("ride-cancelled message received", ride);
+        setVehicleFound(false)
+        setWaitingForDriver(false)
+        setQueueEmpty(false);
+        setCancelPanel(true);
+    }
+    )
   
 
     socket.on('ride-started', ride => {
@@ -61,11 +76,11 @@ const Home = () => {
         navigate('/riding', { state: { ride } }) // Updated navigate to include ride data
     })
 
-    async function captainNotFound() {
-        console.log("in captainNotFound");
+    async function captainNotFound(data) {
+        console.log("in captainNotFound idd", data?._id);
         setTimeout(async () => { // Wrap the API call in a setTimeout
             const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/rides/is-queue-empty`, {
-                params: { rideId: rideWithoutCaptain?._id },
+                params: { rideId: data?._id },
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('token')}`,
                 },
@@ -75,10 +90,11 @@ const Home = () => {
             console.log(response.data.isQueueEmpty);
     
             if (response.data.isQueueEmpty) {
+                setQueueEmpty(true);
                 setVehicleFound(false);
                 // alert('Sorry, No driver is available in your area!');
             }
-        }, 20000); // Delay of 15000 milliseconds (15 seconds)
+        }, 30000); // Delay of 15000 milliseconds (15 seconds)
     }
 
 
@@ -153,6 +169,31 @@ const Home = () => {
         }
     }, [ vehiclePanel ])
 
+
+    useGSAP(function () {
+        if (cancelPanel) {
+            gsap.to(cancelRidePanelRef.current, {
+                transform: 'translateY(0)'
+            })
+        } else {
+            gsap.to(cancelRidePanelRef.current, {
+                transform: 'translateY(100%)'
+            })
+        }
+    }, [ cancelPanel ])
+
+    useGSAP(function () {
+        if (queueEmpty) {
+            gsap.to(queueEmptyPanelRef.current, {
+                transform: 'translateY(0)'
+            })
+        } else {
+            gsap.to(queueEmptyPanelRef.current, {
+                transform: 'translateY(100%)'
+            })
+        }
+    }, [ queueEmpty ])
+
     useGSAP(function () {
         if (confirmRidePanel) {
             gsap.to(confirmRidePanelRef.current, {
@@ -222,13 +263,56 @@ const Home = () => {
         })
         setrideWithoutCaptain(response.data); //new code1
 
-        captainNotFound();
+        console.log("response.data", response.data);
+        console.log("rideWithoutCaptain", rideWithoutCaptain);
 
-
+        captainNotFound(response.data);
     }
+
+    const handleLogout = async () => {
+        const token = localStorage.getItem("token");
+    
+        console.log("Logging out...", token);
+        if (!token) return;
+    
+        try {
+          const response = await axios.get(
+            `${import.meta.env.VITE_BASE_URL}/users/logout`,
+            {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            }
+          );
+    
+          if (response.status === 200) {
+            localStorage.removeItem("token"); // Remove token from localStorage
+            navigate("/login"); // Redirect to login page
+          } else {
+            console.error("Logout failed");
+          }
+        } catch (error) {
+          console.error("Error logging out:", error);
+        }
+      };
 
     return (
         <div className='h-screen relative overflow-hidden'>
+            {/* Header */}
+      <div className="fixed p-6 top-0 flex items-center justify-between w-screen bg-white z-10">
+        <img
+          className="w-16"
+          src="https://upload.wikimedia.org/wikipedia/commons/c/cc/Uber_logo_2018.png"
+          alt=""
+        />
+
+        <button
+            onClick={handleLogout}
+          className="h-10 w-10 bg-white flex items-center justify-center rounded-full shadow"
+        >
+          <i className="text-lg font-medium ri-logout-box-r-line"></i>
+        </button>
+      </div>
             <img className='w-16 absolute left-5 top-5' src="https://upload.wikimedia.org/wikipedia/commons/c/cc/Uber_logo_2018.png" alt="" />
             <div className='h-screen w-screen'>
                 {/* image for temporary use  */}
@@ -312,13 +396,25 @@ const Home = () => {
                     fare={fare}
                     vehicleType={vehicleType}
                     setVehicleFound={setVehicleFound} />
-            </div>
+            </div> 
             <div ref={waitingForDriverRef} className='fixed w-full  z-10 bottom-0  bg-white px-3 py-6 pt-12'>
                 <WaitingForDriver
                     ride={ride}
                     setVehicleFound={setVehicleFound}
                     setWaitingForDriver={setWaitingForDriver}
                     waitingForDriver={waitingForDriver} />
+            </div>
+            <div ref={queueEmptyPanelRef} className='fixed w-full  z-10 bottom-0  bg-white px-3 py-6 pt-12'>
+                <NoDriverAvailable
+                    ride={ride}
+                    setQueueEmpty={setQueueEmpty}
+                />
+            </div>
+            <div ref={cancelRidePanelRef} className='fixed w-full  z-10 bottom-0  bg-white px-3 py-6 pt-12'>
+                <CancelRidePanel
+                    ride={ride}
+                    setCancelPanel={setCancelPanel}
+                />
             </div>
         </div>
     )

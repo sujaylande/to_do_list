@@ -44,7 +44,17 @@ router.get('/is-queue-empty', // new code
     rideController.isQueueEmpty
 )
 
+router.get('/cancel-ride', // new code
+    authMiddleware.authCaptain,
+    query('rideId').isMongoId().withMessage('Invalid ride id'),
+    rideController.cancelRide
+)
 
+router.get('/cancel-ride-byuser', // new code
+    authMiddleware.authUser,
+    query('rideId').isMongoId().withMessage('Invalid ride id'),
+    rideController.cancelRideByUser
+)
 
 router.get('/start-ride',
     authMiddleware.authCaptain,
